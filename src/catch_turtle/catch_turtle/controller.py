@@ -22,6 +22,9 @@ class Controller(Node):
         self.goal_x = None
         self.goal_y = None
 
+        self.declare_parameter("catch_closest_turtle", False)
+        self.catch_closest_turtle = self.get_parameter("catch_closest_turtle").value
+
         self.turtle_pose_subscriber_ = self.create_subscription(Pose, "turtle1/pose", self.turtle_pose_callback, 10)
         self.alive_turtles_subscriber_ = self.create_subscription(AliveTurtles, "alive_turtles", self.alive_turtles_callback, 10)
         self.cmd_vel_publisher_ = self.create_publisher(Twist, "turtle1/cmd_vel", 10)
@@ -100,9 +103,19 @@ class Controller(Node):
             return
         if not self.alive_turtles_:
             return
-        self.goal_turtle = self.alive_turtles_[0].name
-        self.goal_x = self.alive_turtles_[0].x
-        self.goal_y = self.alive_turtles_[0].y
+        if self.catch_closest_turtle:
+            min_distance = float("inf")
+            goal_turtle = None
+            for turtle in self.alive_turtles_:
+                distance = abs(math.sqrt(((turtle.x - self.curx) ** 2) + ((turtle.y - self.cury) ** 2)))
+                if distance < min_distance:
+                    min_distance = distance
+                    goal_turtle = turtle
+        else:
+            goal_turtle = self.alive_turtles_[0]
+        self.goal_turtle = goal_turtle.name
+        self.goal_x = goal_turtle.x
+        self.goal_y = goal_turtle.y
         self.get_logger().info("New goal set: " + str(self.goal_turtle))
 
 def main(args=None):

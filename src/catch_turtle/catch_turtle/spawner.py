@@ -15,9 +15,14 @@ class TurtleSpawner(Node):
         super().__init__("turtle_spawner")
         self.alive_turtles_ = []
         self.turtle_count_ = 0
-        self.turtle_prefix_ = "turtle"
 
-        spawn_timer_ = self.create_timer(5.0, self.spawn_turtle)
+        self.declare_parameter("spawn_timer", 5.0)
+        self.declare_parameter("turtle_prefix", "turtle")
+
+        self.spawn_time = self.get_parameter("spawn_timer").value
+        self.turtle_prefix_ = self.get_parameter("turtle_prefix").value
+
+        spawn_timer_ = self.create_timer(self.spawn_time, self.spawn_turtle)
         publisher_timer_ = self.create_timer(1.0, self.publish_turtles)
 
         self.spawn_client_ = self.create_client(Spawn, "spawn")

@@ -1,0 +1,11 @@
+/turtle_spawner:
+  ros__parameters:
+    # The prefix for the turtle name
+    turtle_prefix: "child_turtle"
+    # The time to wait before spawning each turtle
+    spawn_timer: 2.5
+
+/turtle_catcher:
+  ros__parameters:
+    # Whether to catch the closest turtle
+    catch_closest_turtle: True

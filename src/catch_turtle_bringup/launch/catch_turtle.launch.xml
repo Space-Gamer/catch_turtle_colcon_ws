@@ -1,5 +1,9 @@
 <launch>
     <node pkg="turtlesim" exec="turtlesim_node" name="turtlesim_node" output="screen"/>
-    <node pkg="catch_turtle" exec="turtle_spawner" name="turtle_spawner" output="screen"/>
-    <node pkg="catch_turtle" exec="turtle_catcher" name="turtle_catcher" output="screen"/>
+    <node pkg="catch_turtle" exec="turtle_spawner" name="turtle_spawner" output="screen">
+        <param from="$(find-pkg-share catch_turtle_bringup)/config/params.yaml"/>
+    </node>
+    <node pkg="catch_turtle" exec="turtle_catcher" name="turtle_catcher" output="screen">
+        <param from="$(find-pkg-share catch_turtle_bringup)/config/params.yaml"/>
+    </node>
 </launch>
