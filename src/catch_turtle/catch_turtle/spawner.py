@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import random
 import functools
 
@@ -6,7 +7,7 @@ import rclpy
 from rclpy.node import Node
 
 from catch_turtle_interfaces.msg import AliveTurtles, TurtleInfo
-from turtlesim.srv import Spawn
+from turtlesim.srv import Spawn, Kill
 
 
 class TurtleSpawner(Node):
@@ -16,11 +17,13 @@ class TurtleSpawner(Node):
         self.turtle_count_ = 0
         self.turtle_prefix_ = "turtle"
 
-        spawn_timer_ = self.create_timer(1.0, self.spawn_turtle)
+        spawn_timer_ = self.create_timer(5.0, self.spawn_turtle)
         publisher_timer_ = self.create_timer(1.0, self.publish_turtles)
 
-        self.spawn_client_ = self.create_client(Spawn, "/spawn")
-        self.alive_turtles_publisher_ = self.create_publisher(AliveTurtles, "/alive_turtles", 10)
+        self.spawn_client_ = self.create_client(Spawn, "spawn")
+        self.kill_client_ = self.create_client(Kill, "kill")
+        self.alive_turtles_publisher_ = self.create_publisher(AliveTurtles, "alive_turtles", 10)
+        self.catch_turtle_server = self.create_service(Kill, "catch_turtle", self.catch_turtle)
 
     def spawn_turtle(self):
 
@@ -60,6 +63,29 @@ class TurtleSpawner(Node):
             turtle_info.y = turtle[2]
             msg.alive_turtles.append(turtle_info)
         self.alive_turtles_publisher_.publish(msg)
+
+    def catch_turtle(self, request, response):
+        turtle_name = request.name
+        self.get_logger().info(f"Attempting to kill turtle: {turtle_name}")
+        kill_request = Kill.Request()
+        kill_request.name = turtle_name
+
+        future = self.kill_client_.call_async(kill_request)
+
+        # future.add_done_callback(
+        #     functools.partial(self.catch_turtle_callback, turtle_name=turtle_name, response=response)
+        # )
+        # OR
+        # rclpy.spin_until_future_complete(self, future)
+        # TODO: Implement the callback for the kill service and then return the response
+        # It is getting deadlocked if the above line is uncommented
+
+        self.alive_turtles_ = [
+            turtle for turtle in self.alive_turtles_ if turtle[0] != turtle_name
+        ]
+        self.publish_turtles()
+
+        return response
         
 
 
