@@ -13,9 +13,9 @@ from turtlesim.srv import Kill
 class Controller(Node):
     def __init__(self):
         super().__init__("controller")
-        self.curx = 0.0
-        self.cury = 0.0
-        self.curtheta = 0.0
+        self.curx = None
+        self.cury = None
+        self.curtheta = None
         self.alive_turtles_ = []
 
         self.goal_turtle = None
@@ -27,7 +27,7 @@ class Controller(Node):
         self.cmd_vel_publisher_ = self.create_publisher(Twist, "turtle1/cmd_vel", 10)
         self.catch_turtle_client = self.create_client(Kill, "catch_turtle")
         
-        self.go_to_goal_timer_ = self.create_timer(0.1, self.go_to_goal)
+        self.go_to_goal_timer_ = self.create_timer(0.02, self.go_to_goal)
         self.set_goal_timer_ = self.create_timer(0.1, self.set_goal)
 
     def turtle_pose_callback(self, msg):
@@ -68,16 +68,17 @@ class Controller(Node):
             )
             return
 
-        Beta = 0.9
+        Beta = 2.0
         speed = distance * Beta
 
-        Phi = 4.0
+        Phi = 6.0
         ang_dist = math.atan2((self.goal_y - self.cury), (self.goal_x - self.curx))
-        if ang_dist < 0:
+        ang_dist -= self.curtheta
+        if ang_dist < -math.pi:
             ang_dist += 2 * math.pi
-        elif ang_dist > 2 * math.pi:
+        elif ang_dist > math.pi:
             ang_dist -= 2 * math.pi
-        ang_speed = Phi * (ang_dist - self.curtheta)
+        ang_speed = Phi * ang_dist
 
         msg = Twist()
         msg.linear.x = speed
